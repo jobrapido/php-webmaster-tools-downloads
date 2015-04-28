@@ -41,7 +41,7 @@
 			$this->_tables = array("TOP_PAGES", "TOP_QUERIES",
 				"CRAWL_ERRORS", "CONTENT_ERRORS", "CONTENT_KEYWORDS",
 				"INTERNAL_LINKS", "EXTERNAL_LINKS", "SOCIAL_ACTIVITY",
-                "LATEST_BACKLINKS"
+                "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES"
 			);
 			$this->_errTablesSort = array(0 => "http",
 				1 => "not-found", 2 => "restricted-by-robotsTxt",
@@ -76,10 +76,10 @@
 		 */
 			public function SetTables($arr)
 			{
-				if(is_array($arr) && !empty($arr) && sizeof($arr) <= 2) {
+				if(is_array($arr) && !empty($arr) && sizeof($arr) <= 10) {
 					$valid = array("TOP_PAGES","TOP_QUERIES","CRAWL_ERRORS","CONTENT_ERRORS",
 					  "CONTENT_KEYWORDS","INTERNAL_LINKS","EXTERNAL_LINKS","SOCIAL_ACTIVITY",
-                      "LATEST_BACKLINKS");
+                      "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES");
 					$this->_tables = array();
 					for($i=0; $i < sizeof($arr); $i++) {
 						if(in_array($arr[$i], $valid)) {
@@ -154,13 +154,13 @@
 					'service' => "sitemaps",
 					'source' => "Google-WMTdownloadscript-0.1-php"
 				);
-				
-				// Before PHP version 5.2.0 and when the first char of $pass is an @ symbol, 
+
+				// Before PHP version 5.2.0 and when the first char of $pass is an @ symbol,
 				// send data in CURLOPT_POSTFIELDS as urlencoded string.
 				if ('@' === (string)$pwd[0] || version_compare(PHP_VERSION, '5.2.0') < 0) {
 				    $postRequest = http_build_query($postRequest);
-				}				
-				
+				}
+
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -262,11 +262,19 @@
 			{
 				if(self::IsLoggedIn() === true) {
 					$downloadUrls = self::GetDownloadUrls($site);
-					$filename = parse_url($site, PHP_URL_HOST) ."-". date("Ymd-His");
+					$filename = parse_url($site, PHP_URL_HOST); // ."-". date("Ymd-His"); ** JobRapido change
 					$tables = $this->_tables;
 					foreach($tables as $table) {
 						if($table=="CRAWL_ERRORS") {
 							self::DownloadCSV_CrawlErrors($site, $savepath);
+						}
+						elseif($table=="TOTAL_QUERIES") {
+							self::DownloadCSV_XTRA($site, $savepath,
+							  "top-search-queries", '46prop', "TOTAL_QUERIES", "top-queries-chart-dl");
+						}
+						elseif($table=="TOTAL_PAGES") {
+							self::DownloadCSV_XTRA($site, $savepath,
+							  "top-search-queries", '46prop', "TOTAL_PAGES", "top-urls-chart-dl");
 						}
 						elseif($table=="CONTENT_ERRORS") {
 							self::DownloadCSV_XTRA($site, $savepath,
@@ -310,11 +318,18 @@
 		 */
 			public function DownloadCSV_XTRA($site, $savepath=".", $tokenUri, $tokenDelimiter, $filenamePrefix, $dlUri)
 			{
+
 				if(self::IsLoggedIn() === true) {
-					$uri = self::SERVICEURI . $tokenUri . "?hl=%s&siteUrl=%s";
+					$suffix = "";
+					if ($filenamePrefix == "TOTAL_PAGES") {
+						$suffix="&type=urls";
+					}
+					$uri = self::SERVICEURI . $tokenUri . "?hl=%s&siteUrl=%s" . $suffix;
 					$_uri = sprintf($uri, $this->_language, $site);
 					$token = self::GetToken($_uri, $tokenDelimiter, $dlUri);
-					$filename = parse_url($site, PHP_URL_HOST) ."-". date("Ymd-His");
+
+
+					$filename = parse_url($site, PHP_URL_HOST);//  ."-". date("Ymd-His");
 					$finalName = "$savepath/$filenamePrefix-$filename.csv";
 					$url = self::SERVICEURI . $dlUri . "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true";
 					$_url = sprintf($url, $this->_language, $site, $token, $this->_daterange[0], $this->_daterange[1]);
@@ -374,7 +389,7 @@
 			private function SaveData($finalUrl, $finalName)
 			{
 				$data = self::GetData($finalUrl);
-				if(strlen($data) > 1 && file_put_contents($finalName, utf8_decode($data))) {
+				if(strlen($data) > 1 && file_put_contents($finalName, /*utf8_decode*/($data))) {
 					array_push($this->_downloaded, realpath($finalName));
 					return true;
 				} else {
@@ -392,6 +407,7 @@
 		 */
 			private function GetToken($uri, $delimiter, $dlUri='')
 			{
+
 				$matches = array();
 				$tmp = self::GetData($uri);
 				preg_match_all("#$dlUri.*?46security_token(.*?)$delimiter#si", $tmp, $matches);

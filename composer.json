@@ -1,11 +1,11 @@
 {
-    "name": "eyecatchup/webmaster-tools-data",
+    "name": "jobrapido/webmaster-tools-download-manager",
     "description": "An easy way to automate downloading of data tables from Google Webmaster Tools",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "Stephan Schmitz",
-            "email": "eyecatchup@gmail.com",
+            "name": "Francesco Sblendorio",
+            "email": "sblendorio@gmail.com",
             "role": "Developer"
         }
     ],

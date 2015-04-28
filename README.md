@@ -1,11 +1,11 @@
-OVERVIEW
+Overview
 ========
 
-PURPOSE
+Purpose
 ----------------------
 The purpose for this fork is download-and-store data from Google Webmaster Tools with **daily granularity**: the original project **gwtdata.php** is great, but we solved some issues
 
-CHANGES / IMPROVEMENTS
+Changes / Improvements
 ----------------------
 * two more metrics have been added (TOTAL_PAGES, TOTAL_QUERIES). Those metrics should be the same although they have different URLs for retrieve.
 * managing retry of downloads in case of errors, using a SQLite database to track download status
@@ -14,7 +14,7 @@ CHANGES / IMPROVEMENTS
 * downloading data in UTF-8 format instead of original's ISO-8859-1 for handling multi-language data
 An additional difference is the naming of output files: we have cut the timestamp from filenames.
 
-NEW FEATURES
+New Features
 ------------
 This project provides two stand-alone php scripts:
 * **download.php**: downloads TOP_PAGES, TOP_QUERIES and TOTAL_PAGES metrics for the latest three months
@@ -23,14 +23,14 @@ This project provides two stand-alone php scripts:
 HOW-TO
 ======
 
-FILE LIST
+File List
 ---------
 * **gwtdata.php**: php library for downloading GWT data, fork from original project
 * **download_tracking.db**: SQLite database, it tracks download activities, it's needed by "download.php"
 * **download.php**: php script to launch, it downloads GWT data depending on user accounts settings
 * **post-to-elk.php**: php script to load data (previously downloaded by "download.php") on Elastic Search
 
-PRE REQUISITES
+Pre-Requisites
 --------------
 * PHP 5.6.x
 * PDO library for PHP
@@ -45,11 +45,11 @@ e.g. to satisfy these on a YUM based linux distro, launch these commands:
     sudo yum install php56w-xml
     php --version
 
-INSTALL
+Install
 -------
 Put the 4 files enlisted in FILE LIST paragraph in a certain installation dir, we call this *$DIR* in this document.
 
-CONFIGURATION
+Configuration
 -------------
 In order not to exceed download quota from GWT site, you need to configure the table `downloaders` by inserting rows like these:
 
@@ -65,10 +65,10 @@ Data downloaded will be relative to tables:
 * **TOP_QUERIES**
 * **TOP_PAGES**
 
-PRACTICAL USAGE
+Practical Usage
 ================
 
-DOWNLOAD CSV DATA
+Download CSV data
 -----------------
     cd $DIR
     php download.php [start-date [end-date]]
@@ -88,7 +88,7 @@ Each of these directory will contain two types of CSV files for each site:
 * **TOP_QUERIES**-*sitename*.**csv**
 * **TOP_PAGES**-*sitename*.**csv**
 
-UPLOAD KIBANA DATA
+Upload Kibana data
 ------------------
     cd $DIR
     php post-to-elk.php <server:port> [index-prefix]

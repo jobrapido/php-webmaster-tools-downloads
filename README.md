@@ -92,7 +92,7 @@ Upload Kibana data
 ------------------
     cd $DIR
     php post-to-elk.php <server:port> [index-prefix]
-* **server:port** points to the *elastich search* server
+* **server:port** points to the *elastic search* server
 * **index-prefix** is an optional prefix that will form the index name on elastic search
 
 ### Index names on Elastic Search

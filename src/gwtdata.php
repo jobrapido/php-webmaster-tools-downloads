@@ -41,7 +41,7 @@
 			$this->_tables = array("TOP_PAGES", "TOP_QUERIES",
 				"CRAWL_ERRORS", "CONTENT_ERRORS", "CONTENT_KEYWORDS",
 				"INTERNAL_LINKS", "EXTERNAL_LINKS", "SOCIAL_ACTIVITY",
-                "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES"
+                "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES", "SEARCH_ANALYTICS"
 			);
 			$this->_errTablesSort = array(0 => "http",
 				1 => "not-found", 2 => "restricted-by-robotsTxt",
@@ -79,7 +79,7 @@
 				if(is_array($arr) && !empty($arr) && sizeof($arr) <= 10) {
 					$valid = array("TOP_PAGES","TOP_QUERIES","CRAWL_ERRORS","CONTENT_ERRORS",
 					  "CONTENT_KEYWORDS","INTERNAL_LINKS","EXTERNAL_LINKS","SOCIAL_ACTIVITY",
-                      "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES");
+                      "LATEST_BACKLINKS", "TOTAL_QUERIES", "TOTAL_PAGES", "SEARCH_ANALYTICS");
 					$this->_tables = array();
 					for($i=0; $i < sizeof($arr); $i++) {
 						if(in_array($arr[$i], $valid)) {
@@ -270,35 +270,39 @@
 						}
 						elseif($table=="TOTAL_QUERIES") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "top-search-queries", '46prop', "TOTAL_QUERIES", "top-queries-chart-dl");
+							  "top-search-queries", '46prop', "TOTAL_QUERIES", "top-queries-chart-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
+						}
+						elseif($table=="SEARCH_ANALYTICS") {
+							self::DownloadCSV_XTRA($site, $savepath,
+							  "search-analytics", '"', "SEARCH_ANALYTICS", "search-analytics-dl", "", "", 6, 999, "?hl=%s&siteUrl=%s&security_token=%s&jspb=[null,[[null,\"%s\",\"%s\"]],2,[[null,6,[\"WEB\"]]],null,[1,2,3,4],1,0]&format=csv");
 						}
 						elseif($table=="TOTAL_PAGES") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "top-search-queries", '46prop', "TOTAL_PAGES", "top-urls-chart-dl");
+							  "top-search-queries", '46prop', "TOTAL_PAGES", "top-urls-chart-dl", "&type=urls", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
 						elseif($table=="CONTENT_ERRORS") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "html-suggestions", "\)", "CONTENT_ERRORS", "content-problems-dl");
+							  "html-suggestions", "\)", "CONTENT_ERRORS", "content-problems-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
 						elseif($table=="CONTENT_KEYWORDS") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "keywords", "\)", "CONTENT_KEYWORDS", "content-words-dl");
+							  "keywords", "\)", "CONTENT_KEYWORDS", "content-words-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
 						elseif($table=="INTERNAL_LINKS") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "internal-links", "\)", "INTERNAL_LINKS", "internal-links-dl");
+							  "internal-links", "\)", "INTERNAL_LINKS", "internal-links-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
 						elseif($table=="EXTERNAL_LINKS") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "external-links-domain", "\)", "EXTERNAL_LINKS", "external-links-domain-dl");
+							  "external-links-domain", "\)", "EXTERNAL_LINKS", "external-links-domain-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
 						elseif($table=="SOCIAL_ACTIVITY") {
 							self::DownloadCSV_XTRA($site, $savepath,
-							  "social-activity", "x26", "SOCIAL_ACTIVITY", "social-activity-dl");
+							  "social-activity", "x26", "SOCIAL_ACTIVITY", "social-activity-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
 						}
                         elseif($table=="LATEST_BACKLINKS") {
                             self::DownloadCSV_XTRA($site, $savepath,
-							  "external-links-domain", "\)", "LATEST_BACKLINKS", "backlinks-latest-dl");
+							  "external-links-domain", "\)", "LATEST_BACKLINKS", "backlinks-latest-dl", "", "46", 3, -1, "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true");
                         }
 						else {
 							$finalName = "$savepath/$table-$filename.csv";
@@ -316,25 +320,22 @@
 		 *  @param $site    String   Site URL available in GWT Account.
 		 *  @param $savepath  String   Optional path to save CSV to (no trailing slash!).
 		 */
-			public function DownloadCSV_XTRA($site, $savepath=".", $tokenUri, $tokenDelimiter, $filenamePrefix, $dlUri)
+			public function DownloadCSV_XTRA($site, $savepath=".", $tokenUri, $tokenDelimiter, $filenamePrefix, $dlUri, $suffix, $tokenPrefix, $tokenStart, $tokenEnd, $urlPattern)
 			{
 
 				if(self::IsLoggedIn() === true) {
-					$suffix = "";
-					if ($filenamePrefix == "TOTAL_PAGES") {
-						$suffix="&type=urls";
-					}
 					$uri = self::SERVICEURI . $tokenUri . "?hl=%s&siteUrl=%s" . $suffix;
 					$_uri = sprintf($uri, $this->_language, $site);
-					$token = self::GetToken($_uri, $tokenDelimiter, $dlUri);
-
+					$token = self::GetToken($tokenPrefix, $_uri, $tokenDelimiter, $dlUri, $tokenStart, $tokenEnd);
 
 					$filename = parse_url($site, PHP_URL_HOST);//  ."-". date("Ymd-His");
 					$finalName = "$savepath/$filenamePrefix-$filename.csv";
-					$url = self::SERVICEURI . $dlUri . "?hl=%s&siteUrl=%s&security_token=%s&prop=ALL&db=%s&de=%s&more=true";
+					$url = self::SERVICEURI . $dlUri . $urlPattern;
 					$_url = sprintf($url, $this->_language, $site, $token, $this->_daterange[0], $this->_daterange[1]);
+					// print "\nGET $_url\n"; // log url
 					self::SaveData($_url,$finalName);
-				} else { return false; }
+				} else {
+					return false; }
 			}
 
 		/**
@@ -405,14 +406,14 @@
 		 *  @param $delimiter  String   Trailing delimiter for the regex.
 		 *  @return  String    Returns a security token.
 		 */
-			private function GetToken($uri, $delimiter, $dlUri='')
-			{
+		private function GetToken($tokenPrefix, $uri, $delimiter, $dlUri, $tokenStart, $tokenEnd)
+		{
 
-				$matches = array();
-				$tmp = self::GetData($uri);
-				preg_match_all("#$dlUri.*?46security_token(.*?)$delimiter#si", $tmp, $matches);
-				return isset($matches[1][0]) ? substr($matches[1][0],3,-1) : '';
-			}
+			$matches = array();
+			$tmp = self::GetData($uri);
+			preg_match_all("#$dlUri.*?".$tokenPrefix."security_token(.*?)$delimiter#si", $tmp, $matches);
+			return isset($matches[1][0]) ? substr($matches[1][0],$tokenStart,$tokenEnd) : '';
+		}
 
 		/**
 		 *  Validates ISO 8601 date format.

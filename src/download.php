@@ -88,7 +88,7 @@ VALUES ('it','MAZZIMAZZI','2010-01-01',0)
     print date("Y-m-d h:i:s")." DOWNLOAD STARTED, startDate=$startDate, endDate=$endDate, user=$email =========================\n";
 
 
-    $tables = array('TOTAL_QUERIES', 'TOP_PAGES', 'TOP_QUERIES');
+    $tables = array('TOTAL_QUERIES', 'TOP_PAGES', 'TOP_QUERIES', 'SEARCH_ANALYTICS');
     $cwd = getcwd();
     $gdata = new GWTdata();
     if($gdata->LogIn($email, $password) !== true) {
@@ -139,6 +139,7 @@ VALUES ('it','MAZZIMAZZI','2010-01-01',0)
                     print "WARNING: NO FILE FOR $day/$table/$domain\n";
                   } else if ($nrows==1) {
                     print "EMPTY FILE FOR $day/$table/$domain\n";
+                    //print (file($fdownloaded)[0])."\n\n"; // log first row
                     unlink($fdownloaded);
                     unset_downloaded($pdo, $day, $site, $table);
                   } else {
